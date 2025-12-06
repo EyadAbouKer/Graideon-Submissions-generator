@@ -1,0 +1,91 @@
+You are an expert full stack engineer. Build a small web-based Gemini-based app that generates synthetic student submissions for a given assignment. 
+
+Tech stack:
+- Frontend: React (single page app)
+- Backend: Python Flask API
+- Data: downloadable zip file and save in database   
+
+High level behavior:
+- User can input:
+  - Assignment title
+  - Assignment description (long text)
+  - Optional rubric (structured or unstructured text)
+  - Number of synthetic students to generate
+  - Options for:
+    - Grade distribution (for example: mostly average, normal distribution, or custom percentages for A/B/C/D/F)
+    - Writing level (for example: high school, early undergrad, advanced undergrad)
+    - Variation parameters (for example: more or less diversity in style, verbosity, structure)
+
+- App output:
+  - A table of synthetic student submissions where each row includes at least:
+    - Synthetic student id
+    - Synthetic student name
+    - Simulated grade or score
+    - Submission text
+    - Short feedback comment
+    - Optional rubric-based breakdown (for example: criteria scores, comments per criterion) if rubric is provided 
+  - Ability to:
+    - Filter and search submissions
+    - Sort by grade, name, length, etc
+    - Export data as CSV and JSON or as PDF files in azipped folder
+
+Frontend requirements:
+- Clean, minimal UI with:
+  - A form section on the left/top to configure:
+    - Assignment title and description
+    - Optional rubric text area
+    - Number of students
+    - Grade distribution and writing level
+  - A button "Generate synthetic submissions"
+  - A main results section that:
+    - Shows a loading indicator while backend is generating
+    - Displays submissions in a paginated table
+    - Allows clicking a row to see full submission text and detailed rubric breakdown in a side panel or modal
+  - Buttons to "Export CSV" and "Export JSON"or "Download as zip" 
+
+Backend requirements:
+- Flask app exposing endpoints:
+  - POST /api/generate_submissions
+    - Request body: assignment description, optional rubric, generation parameters
+    - Response: list of synthetic submissions as described above
+  - GET /api/health for basic health check
+- Implement a synthetic generation module that:
+   
+    - Uses deterministic or pseudo random logic to:
+      - Vary writing quality according to target grade
+      - Introduce typical student variation:
+        - Different levels of structure and coherence
+        - Small grammar mistakes for lower grades
+        - Varying length and detail
+      - If rubric is provided, generates per criterion scores and short comments that are roughly consistent with the overall grade
+  - Organize the generation code so it can later be swapped out with an LLM call (for example: isolated function generate_submissions(inputs) that returns a structured Python list of dicts)
+
+Data model (backend):
+- Define a Submission object (or simple dict schema) with fields:
+  - id: string
+  - student_name: string
+  - grade: string or numeric
+  - total_score: numeric
+  - submission_text: string
+  - rubric_scores: list or dict of {criterion_name, score, comment} when rubric exists
+- Make sure the endpoint returns clean JSON conforming to this schema
+
+Implementation details:
+- Provide complete runnable code for:
+  - Frontend React app (including package.json, main component, and any necessary hooks or utils)
+  - Backend Flask app (including requirements.txt and clear instructions on how to run)
+- Include clear instructions at the end:
+  - How to install dependencies
+  - How to start the backend server
+  - How to start the frontend dev server
+  - How to configure the frontend to point to the backend (for example: base URL config)
+
+Code quality:
+- Use clear function and variable names
+- Add concise comments explaining nontrivial logic, especially in the synthetic text generation part
+- Validate user input where reasonable (for example: max number of students, non empty assignment description)
+
+Now provide the full implementation:
+1) Backend Flask code
+2) Frontend React code
+3) Setup and run instructions 
