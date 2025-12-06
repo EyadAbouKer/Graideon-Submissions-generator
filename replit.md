@@ -65,7 +65,7 @@ This application allows educators and developers to:
 ## Environment Variables
 
 - `DATABASE_URL`: PostgreSQL connection string
-- `GEMINI_API_KEY`: Google Gemini API key (required for generation)
+- `GOOGLE_API_KEY`: Google API key for Gemini AI (required for generation)
 - `SESSION_SECRET`: Flask session secret key
 
 ## Recent Changes

@@ -10,9 +10,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def get_gemini_client():
-    api_key = os.environ.get("GEMINI_API_KEY")
+    api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is not set. Please configure your Gemini API key.")
+        raise ValueError("GOOGLE_API_KEY environment variable is not set. Please configure your Google API key.")
     return genai.Client(api_key=api_key)
 
 FIRST_NAMES = [
