@@ -4,12 +4,14 @@ import SubmissionsTable from './components/SubmissionsTable'
 import SubmissionModal from './components/SubmissionModal'
 import ExportButtons from './components/ExportButtons'
 import LoginPage from './components/LoginPage'
+import PastGenerations from './components/PastGenerations'
 import './App.css'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userEmail, setUserEmail] = useState('')
   const [authChecking, setAuthChecking] = useState(true)
+  const [activeTab, setActiveTab] = useState('generate')
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -181,12 +183,39 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <ConfigForm onSubmit={handleGenerate} loading={loading} />
-          </div>
+        {/* Tab Navigation */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('generate')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'generate'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Generate
+            </button>
+            <button
+              onClick={() => setActiveTab('past')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'past'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Past Generations
+            </button>
+          </nav>
+        </div>
 
-          <div className="lg:col-span-2">
+        {activeTab === 'generate' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <ConfigForm onSubmit={handleGenerate} loading={loading} />
+            </div>
+
+            <div className="lg:col-span-2">
             {loading && (
               <div className="bg-white rounded-lg shadow p-8 text-center">
                 <div className="spinner mx-auto mb-4"></div>
@@ -274,11 +303,15 @@ function App() {
             )}
           </div>
         </div>
+        ) : (
+          <PastGenerations onSelectSubmission={setSelectedSubmission} />
+        )}
       </main>
 
       {selectedSubmission && (
         <SubmissionModal
           submission={selectedSubmission}
+          assignmentTitle={assignmentTitle}
           onClose={() => setSelectedSubmission(null)}
         />
       )}

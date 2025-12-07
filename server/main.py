@@ -51,3 +51,10 @@ db.init_app(app)
 with app.app_context():
     import models  # noqa: F401
     db.create_all()
+
+if __name__ == '__main__':
+    # Import app.py to register all API routes
+    import app as app_routes  # noqa: F401
+    # Run Flask on port 8000 for development
+    # Frontend Vite dev server runs on port 5000 and proxies /api requests here
+    app.run(host='0.0.0.0', port=8000, debug=True)
