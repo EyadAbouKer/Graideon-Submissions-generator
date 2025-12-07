@@ -1,23 +1,23 @@
 [phases.setup]
+# System packages provided by Nix
 nixPkgs = [
   "python311",
-  # add each dependency here, e.g.:
-  # "python311Packages.flask",
-  # "python311Packages.requests",
+  "python311Packages.flask",
+  "python311Packages.gunicorn",
   "nodejs_20"
 ]
 
 [phases.install]
+# No pip here; Python deps come from Nix
 cmds = [
-  # no pip install here
   "cd client && npm install"
 ]
 
 [phases.build]
-cmds = ["cd client && npm run build"]
+cmds = [
+  "cd client && npm run build"
+]
 
 [start]
+# Use the Nix-provided gunicorn and your Flask app object
 cmd = "cd server && gunicorn -w 4 -b 0.0.0.0:$PORT main:app"
-
-
-
