@@ -62,12 +62,22 @@ This application allows educators and developers to:
 - Medium: Moderate diversity
 - High: Significant variation
 
+## Authentication
+
+The application is protected by secure login. 
+
+- **Login Email**: devops@graideon.com
+- **Password**: Stored securely as an encrypted secret (ADMIN_PASSWORD_HASH)
+
 ## Environment Variables
 
 - `DATABASE_URL`: PostgreSQL connection string
 - `GOOGLE_API_KEY`: Google API key for Gemini AI (required for generation)
 - `SESSION_SECRET`: Flask session secret key
+- `ADMIN_EMAIL`: Admin login email
+- `ADMIN_PASSWORD_HASH`: SHA256 hash of the admin password (never store plain text passwords)
 
 ## Recent Changes
 
+- Added secure email/password authentication (December 2024)
 - Initial implementation (December 2024)

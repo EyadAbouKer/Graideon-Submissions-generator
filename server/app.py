@@ -3,8 +3,10 @@ import io
 import csv
 import json
 import zipfile
+import hashlib
+from functools import wraps
 from datetime import datetime
-from flask import request, jsonify, send_file
+from flask import request, jsonify, send_file, session
 from main import app, db
 from models import GenerationSession, Submission
 from generator import generate_submissions
@@ -14,12 +16,62 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.units import inch
 
 
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "devops@graideon.com")
+ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH")
+
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('authenticated'):
+            return jsonify({'error': 'Authentication required'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+    
+    expected_email = ADMIN_EMAIL.lower()
+    
+    if ADMIN_PASSWORD_HASH:
+        password_hash = hash_password(password)
+        if email == expected_email and password_hash == ADMIN_PASSWORD_HASH:
+            session['authenticated'] = True
+            session['user_email'] = email
+            session.permanent = True
+            return jsonify({'success': True, 'email': email})
+    
+    return jsonify({'error': 'Invalid email or password'}), 401
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'success': True})
+
+
+@app.route('/api/auth/check', methods=['GET'])
+def check_auth():
+    if session.get('authenticated'):
+        return jsonify({'authenticated': True, 'email': session.get('user_email')})
+    return jsonify({'authenticated': False})
+
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy', 'timestamp': datetime.utcnow().isoformat()})
 
 
 @app.route('/api/generate_submissions', methods=['POST'])
+@login_required
 def api_generate_submissions():
     try:
         data = request.get_json()
@@ -91,6 +143,7 @@ def api_generate_submissions():
 
 
 @app.route('/api/sessions', methods=['GET'])
+@login_required
 def get_sessions():
     sessions = GenerationSession.query.order_by(GenerationSession.created_at.desc()).limit(20).all()
     return jsonify([{
@@ -102,6 +155,7 @@ def get_sessions():
 
 
 @app.route('/api/sessions/<int:session_id>', methods=['GET'])
+@login_required
 def get_session(session_id):
     session = GenerationSession.query.get_or_404(session_id)
     return jsonify({
@@ -117,6 +171,7 @@ def get_session(session_id):
 
 
 @app.route('/api/export/csv', methods=['POST'])
+@login_required
 def export_csv():
     try:
         data = request.get_json()
@@ -151,6 +206,7 @@ def export_csv():
 
 
 @app.route('/api/export/json', methods=['POST'])
+@login_required
 def export_json():
     try:
         data = request.get_json()
@@ -167,6 +223,7 @@ def export_json():
 
 
 @app.route('/api/export/zip', methods=['POST'])
+@login_required
 def export_zip():
     try:
         data = request.get_json()

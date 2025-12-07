@@ -1,11 +1,15 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import ConfigForm from './components/ConfigForm'
 import SubmissionsTable from './components/SubmissionsTable'
 import SubmissionModal from './components/SubmissionModal'
 import ExportButtons from './components/ExportButtons'
+import LoginPage from './components/LoginPage'
 import './App.css'
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
+  const [authChecking, setAuthChecking] = useState(true)
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -16,6 +20,46 @@ function App() {
   const [sortDirection, setSortDirection] = useState('asc')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/check', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      if (data.authenticated) {
+        setIsAuthenticated(true)
+        setUserEmail(data.email)
+      }
+    } catch (err) {
+      console.error('Auth check failed:', err)
+    } finally {
+      setAuthChecking(false)
+    }
+  }
+
+  const handleLogin = (email) => {
+    setIsAuthenticated(true)
+    setUserEmail(email)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      })
+    } catch (err) {
+      console.error('Logout error:', err)
+    }
+    setIsAuthenticated(false)
+    setUserEmail('')
+    setSubmissions([])
+  }
 
   const handleGenerate = async (formData) => {
     setLoading(true)
@@ -29,6 +73,7 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       })
       
@@ -99,16 +144,39 @@ function App() {
     }
   }
 
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="spinner"></div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Synthetic Student Submission Generator
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Generate realistic student submissions using AI for testing and training
-          </p>
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Synthetic Student Submission Generator
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Generate realistic student submissions using AI for testing and training
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">{userEmail}</span>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </header>
 
