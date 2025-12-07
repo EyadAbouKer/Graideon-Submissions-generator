@@ -6,7 +6,7 @@ import zipfile
 import hashlib
 from functools import wraps
 from datetime import datetime
-from flask import request, jsonify, send_file, session
+from flask import request, jsonify, send_file, session, send_from_directory
 from main import app, db
 from models import GenerationSession, Submission
 from generator import generate_submissions
@@ -317,6 +317,17 @@ def export_zip():
         )
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    """Serve the React frontend in production"""
+    if app.static_folder and os.path.exists(app.static_folder):
+        if path and os.path.exists(os.path.join(app.static_folder, path)):
+            return send_from_directory(app.static_folder, path)
+        return send_from_directory(app.static_folder, 'index.html')
+    return jsonify({'error': 'Frontend not built'}), 404
 
 
 if __name__ == '__main__':
